@@ -19,10 +19,7 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install
-
-      - name: Add Android platform
-        run: npx cap add android
+        run: npm ci
 
       - name: Sync web assets
         run: npx cap sync android
