@@ -1,0 +1,8 @@
+{
+  "appId": "com.shawnjlewis.chronicle",
+  "appName": "Chronicle",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
