@@ -23,15 +23,10 @@ jobs:
           rm -rf package-lock.json node_modules
           npm install --ignore-scripts --registry=https://registry.npmjs.org
 
-      - name: Verify Capacitor CLI
-        run: ls node_modules/.bin/ | grep cap || echo "CAP NOT FOUND"
-
       - name: Download and extract Android project
         run: |
-          ls -la
           curl -sL https://github.com/ShawnJLewis/chronicle/releases/download/android-build/android.tar.gz -o android.tar.gz
           tar -xzf android.tar.gz
-          ls -la android/
 
       - name: Sync web assets
         run: npx cap sync android
