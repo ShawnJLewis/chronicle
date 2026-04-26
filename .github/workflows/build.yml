@@ -19,13 +19,15 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --registry=https://registry.npmjs.org --prefer-offline || npm install --registry=https://registry.npmjs.org
+
+      - name: Verify Capacitor CLI
+        run: ls node_modules/.bin/ | grep cap || echo "CAP NOT FOUND"
 
       - name: Download and extract Android project
         run: |
           ls -la
           curl -sL https://github.com/ShawnJLewis/chronicle/releases/download/android-build/android.tar.gz -o android.tar.gz
-          ls -la android.tar.gz
           tar -xzf android.tar.gz
           ls -la android/
 
