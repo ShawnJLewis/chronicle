@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chronicle · 编年史</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: 'Courier New', 'PingFang SC', 'Microsoft YaHei', monospace;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    #game {
+      max-width: 700px;
+      width: 100%;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 0 60px rgba(88,166,255,0.06);
+    }
+    h1 {
+      text-align: center;
+      color: #58a6ff;
+      font-size: 24px;
+      letter-spacing: 4px;
+      margin-bottom: 30px;
+      border-bottom: 1px solid #30363d;
+      padding-bottom: 20px;
+    }
+    #title-bar {
+      color: #8b949e;
+      font-size: 13px;
+      text-align: center;
+      margin-bottom: 25px;
+      letter-spacing: 2px;
+    }
+    #story-text {
+      line-height: 2;
+      font-size: 15px;
+      color: #adbac7;
+      white-space: pre-wrap;
+      margin-bottom: 30px;
+    }
+    #choices {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .choice-btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      padding: 14px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      text-align: left;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .choice-btn:hover {
+      background: #30363d;
+      border-color: #58a6ff;
+      color: #58a6ff;
+    }
+    .choice-num {
+      color: #58a6ff;
+      font-weight: bold;
+      min-width: 20px;
+    }
+    #inventory {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #30363d;
+      font-size: 13px;
+      color: #8b949e;
+    }
+    #inventory span { color: #7ee787; }
+    #ending-screen {
+      text-align: center;
+      padding: 40px 0;
+    }
+    #ending-screen h2 {
+      color: #58a6ff;
+      font-size: 20px;
+      letter-spacing: 4px;
+      margin-bottom: 20px;
+    }
+    #ending-screen p {
+      color: #8b949e;
+      line-height: 2;
+    }
+    #restart-btn {
+      margin-top: 30px;
+      background: #21262d;
+      border: 1px solid #58a6ff;
+      color: #58a6ff;
+      padding: 12px 30px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    #restart-btn:hover { background: #58a6ff; color: #0d1117; }
+    #loading { color: #8b949e; text-align: center; }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <h1>CHRONICLE</h1>
+    <div id="title-bar">编年史 · 雾中来信</div>
+    <div id="loading">正在加载故事...</div>
+  </div>
+
+<script>
+// ── Engine ──────────────────────────────────────────
+const STORY_URL = 'https://raw.githubusercontent.com/ShawnJLewis/chronicle/master/story.json';
+let story = null;
+let state = { chapter: 'prologue', flags: {}, inventory: [], history: [] };
+const SAVE_KEY = 'chronicle_save';
+
+function loadStory() {
+  fetch(STORY_URL)
+    .then(r => r.json())
+    .then(data => {
+      story = data;
+      const saved = localStorage.getItem(SAVE_KEY);
+      if (saved) {
+        try { state = JSON.parse(saved); } catch(e) {}
+      }
+      render();
+    })
+    .catch(() => {
+      document.getElementById('loading').textContent = '无法加载故事数据。请检查网络连接。';
+    });
+}
+
+function save() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+}
+
+function render() {
+  const node = story.chapters[state.chapter];
+  const el = document.getElementById('game');
+
+  let html = `<h1>CHRONICLE</h1><div id="title-bar">编年史 · 雾中来信</div>`;
+
+  if (node.title) html += `<div style="text-align:center;color:#58a6ff;font-size:13px;letter-spacing:2px;margin-bottom:20px;">━━ ${node.title} ━━</div>`;
+  if (node.text) html += `<div id="story-text">${node.text}</div>`;
+
+  if (node.ending) {
+    html += `<div id="ending-screen"><h2>— THE END —</h2><p>${node.text.split('\n').pop()}</p><button id="restart-btn" onclick="restart()">重新开始</button></div>`;
+  } else if (node.choices) {
+    html += `<div id="choices">`;
+    node.choices.forEach((c, i) => {
+      html += `<button class="choice-btn" onclick="choose(${i})"><span class="choice-num">${i+1}.</span> ${c.text}</button>`;
+    });
+    html += `</div>`;
+  }
+
+  if (state.inventory.length > 0) {
+    html += `<div id="inventory">📦 持有: <span>${state.inventory.join(' · ')}</span></div>`;
+  }
+
+  document.getElementById('game').innerHTML = html;
+}
+
+function choose(idx) {
+  const node = story.chapters[state.chapter];
+  const choice = node.choices[idx];
+  const effect = choice.effect || {};
+
+  if (effect.set_flag) Object.assign(state.flags, effect.set_flag);
+  if (effect.clear_flag) effect.clear_flag.forEach(k => delete state.flags[k]);
+  if (effect.add_item) effect.add_item.forEach(it => { if (!state.inventory.includes(it)) state.inventory.push(it); });
+  if (effect.remove_item) effect.remove_item.forEach(it => { state.inventory = state.inventory.filter(i => i !== it); });
+
+  if (choice.chapter) state.chapter = choice.chapter;
+
+  save();
+  render();
+}
+
+function restart() {
+  state = { chapter: story.start, flags: {}, inventory: [], history: [] };
+  save();
+  render();
+}
+
+loadStory();
+</script>
+</body>
+</html>
