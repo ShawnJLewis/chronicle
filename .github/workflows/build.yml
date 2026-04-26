@@ -21,8 +21,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Add Android platform
-        run: npx cap add android
+      - name: Download Android project
+        run: |
+          curl -sL https://github.com/ShawnJLewis/chronicle/releases/download/android-build/android.tar.gz -o android.tar.gz
+          tar -xzf android.tar.gz
 
       - name: Sync web assets
         run: npx cap sync android
