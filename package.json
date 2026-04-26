@@ -1,0 +1,25 @@
+{
+  "name": "chronicle",
+  "version": "1.0.0",
+  "description": "一个基于 Python 的文字冒险游戏引擎，带有完整的剧情分支系统。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShawnJLewis/chronicle.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ShawnJLewis/chronicle/issues"
+  },
+  "homepage": "https://github.com/ShawnJLewis/chronicle#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/cli": "^8.3.1",
+    "@capacitor/core": "^8.3.1"
+  }
+}
