@@ -19,7 +19,9 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install --registry=https://registry.npmjs.org --prefer-offline || npm install --registry=https://registry.npmjs.org
+        run: |
+          rm -rf package-lock.json node_modules
+          npm install --ignore-scripts --registry=https://registry.npmjs.org
 
       - name: Verify Capacitor CLI
         run: ls node_modules/.bin/ | grep cap || echo "CAP NOT FOUND"
